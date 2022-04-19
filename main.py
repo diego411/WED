@@ -1,7 +1,14 @@
 from flask import Flask, flash, request, redirect, url_for, Response
 from werkzeug.utils import secure_filename
 import os
+import json
 from model import query_model
+import redis
+import initial_caching
+
+initial_caching.run()
+
+r = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
 
 UPLOAD_FOLDER = "D:\Projects\WED\emotes"
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
@@ -18,6 +25,26 @@ def hello_world():
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+@app.route("/hwis")
+def hwis():
+    req = request.json
+    if 'channel' not in req or 'message' not in req:
+        return "malformed request", 400
+
+    if not r.get(req['channel']):
+        return {"error": "This channel is currently not being cashed."}
+
+    channel_cache = json.loads(r.get(req['channel']))
+    words = req['message'].split(' ')
+    scores = []
+    for word in words:
+        if word in channel_cache:
+            scores.append(channel_cache[word])
+    if scores:
+        return {"score": max(scores)}
+    return {"score": 0}
 
 
 @app.route("/upload", methods=['POST'])
