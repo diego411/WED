@@ -1,12 +1,7 @@
 from flask import Flask, flash, request, redirect, url_for, Response
 from werkzeug.utils import secure_filename
-import redis
 import os
 from model import query_model
-
-r = redis.Redis(host='localhost', port=6379, db=0)
-
-r.set("test", "2")
 
 UPLOAD_FOLDER = "D:\Projects\WED\emotes"
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
