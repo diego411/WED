@@ -75,13 +75,14 @@ def init_third_party_emote_cache():
 def init_global_emote_cache():
     fetch_and_cache("global", bttv)
     fetch_and_cache("global", ffz)
+    fetch_and_cache("global", seventv)
 
 
 def run():
     if not os.path.exists(ROOT_FOLDER + "/emotes/"):
         os.mkdir(ROOT_FOLDER + "/emotes/")
 
-    init_third_party_emote_cache()
+    # init_third_party_emote_cache()
 
     if not os.path.exists(ROOT_FOLDER + "/emotes/"):
         os.mkdir(ROOT_FOLDER + "/emotes/")
