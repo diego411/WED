@@ -4,6 +4,7 @@ import redis
 import requests
 from apis import bttv
 from apis import ffz
+from apis import seventv
 from model import query_model
 
 r = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
@@ -47,10 +48,11 @@ def init_cache(channel, emote_provider):
         os.rmdir(path)
 
 
-def run():
-    if not os.path.exists(ROOT_FOLDER + "/emotes/"):
-        os.mkdir(ROOT_FOLDER + "/emotes/")
+# def run():
+if not os.path.exists(ROOT_FOLDER + "/emotes/"):
+    os.mkdir(ROOT_FOLDER + "/emotes/")
 
-    for channel in channels:
-        init_cache(channel, bttv)
-        init_cache(channel, ffz)
+for channel in channels:
+    init_cache(channel, bttv)
+    init_cache(channel, ffz)
+    init_cache(channel, seventv)
