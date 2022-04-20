@@ -7,6 +7,7 @@ import requests
 from apis import bttv
 from apis import ffz
 from apis import seventv
+from apis import twitch
 from model import query_model
 
 r = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
@@ -76,13 +77,14 @@ def init_global_emote_cache():
     fetch_and_cache("global", bttv)
     fetch_and_cache("global", ffz)
     fetch_and_cache("global", seventv)
+    fetch_and_cache("global", twitch)
 
 
 def run():
     if not os.path.exists(ROOT_FOLDER + "/emotes/"):
         os.mkdir(ROOT_FOLDER + "/emotes/")
 
-    # init_third_party_emote_cache()
+    init_third_party_emote_cache()
 
     if not os.path.exists(ROOT_FOLDER + "/emotes/"):
         os.mkdir(ROOT_FOLDER + "/emotes/")
