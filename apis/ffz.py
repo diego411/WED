@@ -28,5 +28,4 @@ def fetch_all_emotes_for_channel(channel):
                     break
 
         return emotes
-    else:
-        return []
+    return []

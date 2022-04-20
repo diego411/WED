@@ -1,4 +1,3 @@
-from matplotlib.style import use
 import requests
 from apis import twitch
 
@@ -28,8 +27,7 @@ def fetch_all_emotes_for_channel(channel):
             })
 
         return emotes
-    else:
-        return []
+    return []
 
 
 def image_link_for_emote_id(emote_id):
