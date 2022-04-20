@@ -2,10 +2,29 @@ import requests
 from apis import twitch
 
 CHANNEL_EMOTES_URL = "https://api.betterttv.net/3/cached/frankerfacez/users/twitch/"
+GLOBAL_EMOTES_URL = "https://api.frankerfacez.com/v1/set/global"
 
 
 def fetch_image_link_for_emote(emote):
     print("todo")
+
+
+def fetch_all_global_emotes():
+    response = requests.get(GLOBAL_EMOTES_URL)
+
+    if response.ok:
+        emotes = []
+        global_emotes = response.json(
+        )["sets"]["3"]["emoticons"] + response.json()['sets']["4330"]["emoticons"]
+
+        for emote in global_emotes:
+            emote_id = emote['id']
+            emotes.append({
+                "name": emote['name'],
+                "image_link": image_link_for_emote_id(emote_id)
+            })
+        return emotes
+    return []
 
 
 def fetch_all_emotes_for_channel(channel):
@@ -29,3 +48,7 @@ def fetch_all_emotes_for_channel(channel):
 
         return emotes
     return []
+
+
+def image_link_for_emote_id(emote_id):
+    return "https://cdn.frankerfacez.com/emote/" + str(emote_id) + "/4"

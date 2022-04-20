@@ -74,6 +74,7 @@ def init_third_party_emote_cache():
 
 def init_global_emote_cache():
     fetch_and_cache("global", bttv)
+    fetch_and_cache("global", ffz)
 
 
 def run():
