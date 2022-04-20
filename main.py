@@ -37,11 +37,14 @@ def hwis():
         return {"error": "This channel is currently not being cashed."}
 
     channel_cache = json.loads(r.get(req['channel']))
+    global_cache = json.loads(r.get('global'))
     words = req['message'].split(' ')
     scores = []
     for word in words:
         if word in channel_cache:
             scores.append(channel_cache[word])
+        if word in global_cache:
+            scores.append(global_cache[word])
     if scores:
         return {"score": max(scores)}
     return {"score": 0}
