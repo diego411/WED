@@ -9,6 +9,19 @@ CLIENT_ID = os.environ.get("CLIENT_ID")
 
 HELIX_USERS_URL = "https://api.twitch.tv/helix/users/"
 HELIX_GLOBAL_EMOTES = "https://api.twitch.tv/helix/chat/emotes/global"
+SUB_EMOTES_URL = "https://api.ivr.fi/v2/twitch/emotes/"
+
+
+def fetch_sub_emote(emote_name):
+    response = requests.get(SUB_EMOTES_URL + emote_name)
+
+    if response.ok:
+        emote = response.json()
+        return {
+            "name": emote['emoteCode'],
+            "image_link": get_image_link(emote['emoteID'])
+        }
+    return None
 
 
 def fetch_all_global_emotes():
@@ -28,7 +41,6 @@ def fetch_all_global_emotes():
                         "image_link": emote['images'][image_size]
                     })
                     break
-        print(emotes)
         return emotes
     return []
 
@@ -40,3 +52,7 @@ def get_user_id(channel_name):
 
     if response.ok and response.json()['data']:
         return response.json()['data'][0]['id']
+
+
+def get_image_link(emoteID):
+    return "https://static-cdn.jtvnw.net/emoticons/v2/" + str(emoteID) + "/default/dark/3.0"
