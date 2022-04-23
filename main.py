@@ -39,10 +39,14 @@ def hwis():
     if not r.get(req['channel']):
         return {"error": "This channel is currently not being cashed."}
 
-    words = req['message'].split(' ')
-    score = cache_manager.get_scores(words, req['channel'])
+    stats = cache_manager.get_stats(req['message'], req['channel'])
 
-    return {"response_code": 200, "score": score}
+    return {
+        "response_code": 200,
+        "isWeeb": stats['isWeeb'],
+        "confidence": stats['confidence'],
+        "number_of_weeb_terms": stats['number_of_weeb_terms']
+    }
 
 
 @app.route(BASE_ROUTE + "/join")

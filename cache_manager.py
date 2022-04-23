@@ -45,7 +45,7 @@ class CacheManager:
         self.globa_third_party_emotes_cache = ExpiringCache(
             self.r, "global-third-party", self.miss_callback_global_third_party_emotes, 7200, self.fetch_all_global_third_party_target_names)
 
-    def get_emote_score(emote):
+    def get_emote_score(self, emote):
         if not emote:
             return None
 
@@ -117,10 +117,12 @@ class CacheManager:
 
         return global_bttv + global_ffz + global_seventv
 
-    def get_scores(self, words, channel):
+    def get_stats(self, message, channel):
         # priority: global-twitch-emotes, sub-emotes, third-party-channel-emotes, global-third-party-emotes
         scores = []
         tmp_cache = {}
+
+        words = message.split(' ')
 
         for word in words:
 
@@ -151,6 +153,28 @@ class CacheManager:
                 continue
 
             score = self.globa_third_party_emotes_cache.shoot(word)
+
+            if score:
+                scores.append(score)
+                tmp_cache[word] = score
+
         if scores:
-            return max(scores)
-        return 0
+            max_score = 0
+            number_of_weeb_terms = 0
+            for score in scores:
+                if score > max_score:
+                    max_score = score
+                if score > 0.7:
+                    number_of_weeb_terms = number_of_weeb_terms + 1
+
+            isWeeb = max_score > 0.7
+            return {
+                "isWeeb": isWeeb,
+                "confidence": max_score if isWeeb else 1 - max_score,
+                "number_of_weeb_terms": number_of_weeb_terms
+            }
+        return {
+            "isWeeb": False,
+            "confidence": 1,
+            "number_of_weeb_terms": 0
+        }
