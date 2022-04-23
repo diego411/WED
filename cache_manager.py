@@ -1,6 +1,7 @@
 import json
 import os
 import redis
+import utils
 from apis import bttv
 from apis import ffz
 from apis import seventv
@@ -8,7 +9,6 @@ from apis import twitch
 from model import query_model
 from cache.FWFCache import FWFCache
 from cache.ExpiringCache import ExpiringCache
-import utils
 
 
 class CacheManager:
@@ -18,7 +18,6 @@ class CacheManager:
                              db=0, decode_responses=True)
         self.channels = self.r.get('channels').split(
             ' ') if self.r.get('channels') else []
-        self.ROOT_FOLDER = "D:/Projects/WED"
         self.channel_cache_map = {}
         self.global_twitch_emotes_cache = {}
         self.globa_third_party_emotes_cache = {}
@@ -27,13 +26,7 @@ class CacheManager:
         self.init_cache()
 
     def init_cache(self):
-        if not os.path.exists(self.ROOT_FOLDER + "/emotes/"):
-            os.mkdir(self.ROOT_FOLDER + "/emotes/")
-
         self.init_third_party_emote_cache()
-
-        if not os.path.exists(self.ROOT_FOLDER + "/emotes/"):
-            os.mkdir(self.ROOT_FOLDER + "/emotes/")
 
         self.init_global_emote_cache()
 
@@ -46,24 +39,27 @@ class CacheManager:
             self.channel_cache_map[channel] = ExpiringCache(
                 self.r, channel, self.miss_callback_third_party_emotes, 7200, self.fetch_all_third_party_target_names)
 
-    def miss_callback_sub_emotes(self, target):
-        emote = twitch.fetch_sub_emote(target)
-        # is not a sub emote
+    def init_global_emote_cache(self):
+        self.global_twitch_emotes_cache = ExpiringCache(
+            self.r, "global-twitch", self.miss_callback_global_twitch_emotes, 7200, self.fetch_all_global_twitch_target_names)
+        self.globa_third_party_emotes_cache = ExpiringCache(
+            self.r, "global-third-party", self.miss_callback_global_third_party_emotes, 7200, self.fetch_all_global_third_party_target_names)
+
+    def get_emote_score(emote):
         if not emote:
             return None
 
-        if not os.path.exists(self.ROOT_FOLDER + "/emotes/"):
-            os.mkdir(self.ROOT_FOLDER + "/emotes/")
-
-        path = "D:/Projects/WED" + "/emotes/"
-        path_to_emote = path + utils.slugify(emote['name']) + ".png"
-        utils.download_emote(emote['image_link'], path,
-                             utils.slugify(emote['name']))
+        path_to_emote = utils.download_emote(
+            emote['image_link'], emote['name'])
         score = query_model.get_weeb_score(path_to_emote)
         os.remove(path_to_emote)
-        if os.path.exists(path):
-            os.rmdir(path)
+
         return score.item()
+
+    def miss_callback_sub_emotes(self, target):
+        emote = twitch.fetch_sub_emote(target)
+        # is not a sub emote
+        return self.get_emote_score(emote)
 
     def miss_callback_third_party_emotes(self, target, context):
         if target in json.loads(self.r.get(context + "-emote-names-bttv")):
@@ -72,21 +68,27 @@ class CacheManager:
             emote = ffz.fetch_emote(target, context)
         elif target in json.loads(self.r.get(context + "-emote-names-seventv")):
             emote = seventv.fetch_emote(target, context)
+
+        return self.get_emote_score(emote)
+
+    def miss_callback_global_twitch_emotes(self, target, context):
+        if target in json.loads(self.r.get("global-emotes-twitch")):
+            emote = twitch.fetch_global_emote(target)
+
         if not emote:
             return None
 
-        if not os.path.exists(self.ROOT_FOLDER + "/emotes/"):
-            os.mkdir(self.ROOT_FOLDER + "/emotes/")
+        return self.get_emote_score(emote)
 
-        path = "D:/Projects/WED" + "/emotes/"
-        path_to_emote = path + utils.slugify(emote['name']) + ".png"
-        utils.download_emote(emote['image_link'], path,
-                             utils.slugify(emote['name']))
-        score = query_model.get_weeb_score(path_to_emote)
-        os.remove(path_to_emote)
-        if os.path.exists(path):
-            os.rmdir(path)
-        return score.item()
+    def miss_callback_global_third_party_emotes(self, target, context):
+        if target in json.loads(self.r.get("global-emotes-bttv")):
+            emote = bttv.fetch_global_emote(target)
+        elif target in json.loads(self.r.get("global-emotes-ffz")):
+            emote = ffz.fetch_global_emote(target)
+        elif target in json.loads(self.r.get("global-emotes-seventv")):
+            emote = seventv.fetch_global_emote(target)
+
+        return self.get_emote_score(emote)
 
     def fetch_all_third_party_target_names(self, channel):
         all_names_bttv = bttv.fetch_all_emote_names(channel)
@@ -98,56 +100,6 @@ class CacheManager:
                    json.dumps(all_names_seventv))
 
         return all_names_bttv + all_names_ffz + all_names_seventv
-
-    def init_global_emote_cache(self):
-        self.global_twitch_emotes_cache = ExpiringCache(
-            self.r, "global-twitch", self.miss_callback_global_twitch_emotes, 7200, self.fetch_all_global_twitch_target_names)
-        self.globa_third_party_emotes_cache = ExpiringCache(
-            self.r, "global-third-party", self.miss_callback_global_third_party_emotes, 7200, self.fetch_all_global_third_party_target_names)
-
-    def miss_callback_global_twitch_emotes(self, target, context):
-        if target in json.loads(self.r.get("global-emotes-twitch")):
-            emote = twitch.fetch_global_emote(target)
-
-        if not emote:
-            return None
-
-        if not os.path.exists(self.ROOT_FOLDER + "/emotes/"):
-            os.mkdir(self.ROOT_FOLDER + "/emotes/")
-
-        path = "D:/Projects/WED" + "/emotes/"
-        path_to_emote = path + utils.slugify(emote['name']) + ".png"
-        utils.download_emote(emote['image_link'], path,
-                             utils.slugify(emote['name']))
-        score = query_model.get_weeb_score(path_to_emote)
-        os.remove(path_to_emote)
-        if os.path.exists(path):
-            os.rmdir(path)
-        return score.item()
-
-    def miss_callback_global_third_party_emotes(self, target, context):
-        if target in json.loads(self.r.get("global-emotes-bttv")):
-            emote = bttv.fetch_global_emote(target)
-        elif target in json.loads(self.r.get("global-emotes-ffz")):
-            emote = ffz.fetch_global_emote(target)
-        elif target in json.loads(self.r.get("global-emotes-seventv")):
-            emote = seventv.fetch_global_emote(target)
-
-        if not emote:
-            return None
-
-        if not os.path.exists(self.ROOT_FOLDER + "/emotes/"):
-            os.mkdir(self.ROOT_FOLDER + "/emotes/")
-
-        path = "D:/Projects/WED" + "/emotes/"
-        path_to_emote = path + utils.slugify(emote['name']) + ".png"
-        utils.download_emote(emote['image_link'], path,
-                             utils.slugify(emote['name']))
-        score = query_model.get_weeb_score(path_to_emote)
-        os.remove(path_to_emote)
-        if os.path.exists(path):
-            os.rmdir(path)
-        return score.item()
 
     def fetch_all_global_twitch_target_names(self, channel):
         global_twitch = twitch.fetch_all_global_emote_names()

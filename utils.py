@@ -2,6 +2,9 @@ import os
 import unicodedata
 import re
 import requests
+import pathlib
+
+ROOT = pathlib.Path(__file__).parent.resolve()
 
 
 def slugify(value, allow_unicode=False):
@@ -15,13 +18,17 @@ def slugify(value, allow_unicode=False):
     return re.sub(r'[-\s]+', '-', value).strip('-_')
 
 
-def download_emote(image_link, path, emote_name):
+def download_emote(image_link, emote_name):
+    path = os.path.join(ROOT, "emotes")
     if not os.path.exists(path):
         os.mkdir(path)
     r = requests.get(image_link)
-    file = open(path + emote_name + ".png", "wb")
+    path_to_emote = os.path.join(path, slugify(emote_name) + ".png")
+    file = open(path_to_emote, "wb")
     file.write(r.content)
     file.close()
+
+    return path_to_emote
 
 
 def matches_twitch_emote_pattern(word):
