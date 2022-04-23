@@ -167,10 +167,11 @@ class CacheManager:
         if score:
             return score
 
-        score = self.sub_emote_cache.shoot(word)
+        if utils.matches_twitch_emote_pattern(word):
+            score = self.sub_emote_cache.shoot(word)
 
-        if score:
-            return score
+            if score:
+                return score
 
         score = self.channel_cache_map[channel].shoot(word)
 
