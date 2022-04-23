@@ -1,6 +1,5 @@
 import json
 import os
-import redis
 import utils
 from apis import bttv
 from apis import ffz
@@ -13,9 +12,8 @@ from cache.ExpiringCache import ExpiringCache
 
 class CacheManager:
 
-    def __init__(self):
-        self.r = redis.Redis(host='localhost', port=6379,
-                             db=0, decode_responses=True)
+    def __init__(self, cach_client):
+        self.r = cach_client
         self.channels = self.r.get('channels').split(
             ' ') if self.r.get('channels') else []
         self.channel_cache_map = {}
