@@ -40,14 +40,9 @@ def hwis():
         return {"error": "This channel is currently not being cashed."}
 
     words = req['message'].split(' ')
-    scores = []
-    for word in words:
-        score = cache_manager.get_score(word, req['channel'])
-        if score:
-            scores.append(score)
-    if scores:
-        return {"score": max(scores)}
-    return {"response_code": 200, "score": 0}
+    score = cache_manager.get_scores(words, req['channel'])
+
+    return {"response_code": 200, "score": score}
 
 
 @app.route(BASE_ROUTE + "/join")

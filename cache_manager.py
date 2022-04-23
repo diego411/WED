@@ -117,24 +117,40 @@ class CacheManager:
 
         return global_bttv + global_ffz + global_seventv
 
-    def get_score(self, word, channel):
+    def get_scores(self, words, channel):
         # priority: global-twitch-emotes, sub-emotes, third-party-channel-emotes, global-third-party-emotes
-        score = self.global_twitch_emotes_cache.shoot(word)
+        scores = []
+        tmp_cache = {}
 
-        if score:
-            return score
+        for word in words:
 
-        if utils.matches_twitch_emote_pattern(word):
-            score = self.sub_emote_cache.shoot(word)
+            if word in tmp_cache:
+                scores.append(tmp_cache[word])
+                continue
+
+            score = self.global_twitch_emotes_cache.shoot(word)
 
             if score:
-                return score
+                scores.append(score)
+                tmp_cache[word] = score
+                continue
 
-        score = self.channel_cache_map[channel].shoot(word)
+            if utils.matches_twitch_emote_pattern(word):
+                score = self.sub_emote_cache.shoot(word)
 
-        if score:
-            return score
+                if score:
+                    scores.append(score)
+                    tmp_cache[word] = score
+                    continue
 
-        score = self.globa_third_party_emotes_cache.shoot(word)
+            score = self.channel_cache_map[channel].shoot(word)
 
-        return score
+            if score:
+                scores.append(score)
+                tmp_cache[word] = score
+                continue
+
+            score = self.globa_third_party_emotes_cache.shoot(word)
+        if scores:
+            return max(scores)
+        return 0
