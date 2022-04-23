@@ -4,9 +4,11 @@ import os
 import json
 from model import query_model
 import redis
-import initial_caching
+from cache_manager import CacheManager
 
-initial_caching.run()
+
+cache_manager = CacheManager()
+cache_manager.init_cache()
 
 r = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
 
@@ -36,15 +38,12 @@ def hwis():
     if not r.get(req['channel']):
         return {"error": "This channel is currently not being cashed."}
 
-    channel_cache = json.loads(r.get(req['channel']))
-    global_cache = json.loads(r.get('global'))
     words = req['message'].split(' ')
     scores = []
     for word in words:
-        if word in channel_cache:
-            scores.append(channel_cache[word])
-        if word in global_cache:
-            scores.append(global_cache[word])
+        score = cache_manager.get_score(word, req['channel'])
+        if score:
+            scores.append(score)
     if scores:
         return {"score": max(scores)}
     return {"score": 0}
