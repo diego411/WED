@@ -16,7 +16,8 @@ class CacheManager:
     def __init__(self):
         self.r = redis.Redis(host='localhost', port=6379,
                              db=0, decode_responses=True)
-        self.channels = self.r.get('channels').split(' ')
+        self.channels = self.r.get('channels').split(
+            ' ') if self.r.get('channels') else []
         self.ROOT_FOLDER = "D:/Projects/WED"
         self.channel_cache_map = {}
         self.global_twitch_emotes_cache = {}
@@ -54,7 +55,7 @@ class CacheManager:
         if not os.path.exists(self.ROOT_FOLDER + "/emotes/"):
             os.mkdir(self.ROOT_FOLDER + "/emotes/")
 
-        path = "D:/Projects/WED" + "/emotes/" + emote['name'] + "/"
+        path = "D:/Projects/WED" + "/emotes/"
         path_to_emote = path + utils.slugify(emote['name']) + ".png"
         utils.download_emote(emote['image_link'], path,
                              utils.slugify(emote['name']))
@@ -77,7 +78,7 @@ class CacheManager:
         if not os.path.exists(self.ROOT_FOLDER + "/emotes/"):
             os.mkdir(self.ROOT_FOLDER + "/emotes/")
 
-        path = "D:/Projects/WED" + "/emotes/" + emote['name'] + "/"
+        path = "D:/Projects/WED" + "/emotes/"
         path_to_emote = path + utils.slugify(emote['name']) + ".png"
         utils.download_emote(emote['image_link'], path,
                              utils.slugify(emote['name']))
@@ -114,7 +115,7 @@ class CacheManager:
         if not os.path.exists(self.ROOT_FOLDER + "/emotes/"):
             os.mkdir(self.ROOT_FOLDER + "/emotes/")
 
-        path = "D:/Projects/WED" + "/emotes/"  # + emote['name'] + "/"
+        path = "D:/Projects/WED" + "/emotes/"
         path_to_emote = path + utils.slugify(emote['name']) + ".png"
         utils.download_emote(emote['image_link'], path,
                              utils.slugify(emote['name']))
@@ -138,7 +139,7 @@ class CacheManager:
         if not os.path.exists(self.ROOT_FOLDER + "/emotes/"):
             os.mkdir(self.ROOT_FOLDER + "/emotes/")
 
-        path = "D:/Projects/WED" + "/emotes/"  # + emote['name'] + "/"
+        path = "D:/Projects/WED" + "/emotes/"
         path_to_emote = path + utils.slugify(emote['name']) + ".png"
         utils.download_emote(emote['image_link'], path,
                              utils.slugify(emote['name']))
