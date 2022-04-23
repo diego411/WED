@@ -4,14 +4,14 @@ import time
 
 class ExpiringCache:
 
-    def __init__(self, cache_client, key, miss_callback, fetch_all_target_names):
+    def __init__(self, cache_client, key, miss_callback, refresh_treshold, fetch_all_target_names):
         self.cache_client = cache_client
         self.KEY = key
         self.miss_callback = miss_callback
         self.fetch_all_target_names = fetch_all_target_names
         self.all_target_names = fetch_all_target_names(self.KEY)
         self.targets_refresh_timestamp = time.time()
-        self.refresh_treshold = 100
+        self.refresh_treshold = refresh_treshold
 
         for target in self.all_target_names:
             self.shoot(target)
@@ -38,12 +38,13 @@ class ExpiringCache:
         if target in all_targets:
             # force cache miss on expired value
             if not self.expired(all_targets[target]):
-                print("Cache hit for target: " + target)
+                print("Cache hit for target: " +
+                      target + " in context: " + self.KEY)
                 return all_targets[target]["value"]
             print("Cached value for target: " + target + " is expired")
 
         # cache miss
-        print("Cache miss for target: " + target)
+        print("Cache miss for target: " + target + " in context: " + self.KEY)
         missed_value = self.miss_callback(target, self.KEY)
 
         if not missed_value:

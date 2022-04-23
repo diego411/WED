@@ -25,11 +25,12 @@ class FWFCache:
 
         # cache hit
         if target in cache:
-            print("Cache hit for target: " + target)
+            print("Cache hit for target: " +
+                  target + " in context: " + self.KEY)
             return cache[target]
 
         # cache miss
-        print("Cache miss for target: " + target)
+        print("Cache miss for target: " + target + " in context: " + self.KEY)
 
         missed_value = self.miss_callback(target)
 
