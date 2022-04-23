@@ -24,6 +24,7 @@ BASE URL: http://localhost:5000/api/v1
 
 #### Get weeb score:
 **GET** <code>/hwis</code>
+
 **BODY**: 
 ```json
 { 
@@ -43,6 +44,7 @@ BASE URL: http://localhost:5000/api/v1
 
 #### Join channel for caching:
 **GET** <code>/join</code>
+
 **BODY**:
 ```json
 {
