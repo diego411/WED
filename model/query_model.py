@@ -15,4 +15,4 @@ def get_weeb_score(path):
     predictions = model.predict(img_array)
     score = predictions[0]
 
-    return (100 * score)[0]
+    return score[0]
