@@ -1,7 +1,6 @@
-from flask import Flask, flash, request, redirect, url_for, Response
+from flask import Flask, flash, request, redirect
 from werkzeug.utils import secure_filename
 import os
-import json
 from model import query_model
 import redis
 from cache_manager import CacheManager
@@ -18,8 +17,10 @@ ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+BASE_ROUTE = "/api/v1"
 
-@app.route("/")
+
+@app.route(BASE_ROUTE + "/")
 def hello_world():
     return "<h1>Hello, World!</h1>"
 
@@ -29,7 +30,7 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-@app.route("/hwis")
+@app.route(BASE_ROUTE + "/hwis")
 def hwis():
     req = request.json
     if 'channel' not in req or 'message' not in req:
@@ -47,6 +48,17 @@ def hwis():
     if scores:
         return {"score": max(scores)}
     return {"score": 0}
+
+
+@app.route(BASE_ROUTE + "/join")
+def join():
+    req = request.json
+    if 'channel' not in req:
+        return "malformed request: you need to specify a channel to join", 400
+
+    r.set('channels', r.get('channels') + req['channel'] + " ")
+    print(req['channel'])
+    cache_manager.init_channel_cache(req['channel'])
 
 
 @app.route("/upload", methods=['POST'])

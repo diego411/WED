@@ -36,6 +36,10 @@ class CacheManager:
 
         self.init_global_emote_cache()
 
+    def init_channel_cache(self, channel):
+        self.channel_cache_map[channel] = ExpiringCache(
+            self.r, channel, self.miss_callback_third_party_emotes, 7200, self.fetch_all_third_party_target_names)
+
     def init_third_party_emote_cache(self):
         for channel in self.channels:
             self.channel_cache_map[channel] = ExpiringCache(
@@ -61,11 +65,11 @@ class CacheManager:
         return score.item()
 
     def miss_callback_third_party_emotes(self, target, context):
-        if target in json.loads(self.r.get(context + "-emote_names-bttv")):
+        if target in json.loads(self.r.get(context + "-emote-names-bttv")):
             emote = bttv.fetch_emote(target, context)
-        elif target in json.loads(self.r.get(context + "-emote_names-ffz")):
+        elif target in json.loads(self.r.get(context + "-emote-names-ffz")):
             emote = ffz.fetch_emote(target, context)
-        elif target in json.loads(self.r.get(context + "-emote_names-seventv")):
+        elif target in json.loads(self.r.get(context + "-emote-names-seventv")):
             emote = seventv.fetch_emote(target, context)
         if not emote:
             return None
@@ -88,7 +92,7 @@ class CacheManager:
         self.r.set(channel + "-emote-names-bttv", json.dumps(all_names_bttv))
         all_names_ffz = ffz.fetch_all_emote_names(channel)
         self.r.set(channel + "-emote-names-ffz", json.dumps(all_names_ffz))
-        all_names_seventv = ffz.fetch_all_emote_names(channel)
+        all_names_seventv = seventv.fetch_all_emote_names(channel)
         self.r.set(channel + "-emote-names-seventv",
                    json.dumps(all_names_seventv))
 
