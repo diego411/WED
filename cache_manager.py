@@ -167,12 +167,12 @@ class CacheManager:
 
             isWeeb = max_score > 0.7
             return {
-                "isWeeb": isWeeb,
+                "is_weeb": isWeeb,
                 "confidence": max_score if isWeeb else 1 - max_score,
                 "number_of_weeb_terms": number_of_weeb_terms
             }
         return {
-            "isWeeb": False,
+            "is_weeb": False,
             "confidence": 1,
             "number_of_weeb_terms": 0
         }

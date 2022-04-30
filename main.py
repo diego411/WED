@@ -30,7 +30,7 @@ def hwis():
 
     return {
         "response_code": 200,
-        "isWeeb": stats['isWeeb'],
+        "is_weeb": stats['is_weeb'],
         "confidence": stats['confidence'],
         "number_of_weeb_terms": stats['number_of_weeb_terms']
     }
