@@ -2,3 +2,4 @@ Flask==2.1.1
 python-dotenv==0.20.0
 redis==4.2.2
 tensorflow==2.8.0
+pillow==9.1.0
