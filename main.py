@@ -1,8 +1,16 @@
 import redis
+import os
 from flask import Flask, request
 from cache_manager import CacheManager
 
-r = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
+from dotenv import load_dotenv
+
+load_dotenv()
+
+redis_host = os.environ.get("REDIS_HOST")
+redis_port = os.environ.get("REDIS_PORT")
+
+r = redis.Redis(host=redis_host, port=redis_port, db=0, decode_responses=True)
 
 cache_manager = CacheManager(r)
 cache_manager.init_cache()
