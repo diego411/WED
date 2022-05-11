@@ -155,6 +155,9 @@ class CacheManager:
             if score:
                 scores.append(score)
                 tmp_cache[word] = score
+                continue
+
+            tmp_cache[word] = 0
 
         if scores:
             max_score = 0
