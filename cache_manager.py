@@ -14,8 +14,7 @@ class CacheManager:
 
     def __init__(self, cach_client):
         self.r = cach_client
-        self.channels = self.r.get('channels').split(
-            ' ') if self.r.get('channels') else []
+        self.channels = self.r.smembers('channels') if self.r.smembers('channels') else []
         self.channel_cache_map = {}
         self.global_twitch_emotes_cache = {}
         self.globa_third_party_emotes_cache = {}

@@ -50,8 +50,7 @@ def join():
     if 'channel' not in req:
         return "malformed request: you need to specify a channel to join", 400
 
-    r.set('channels', r.get('channels') +
-          req['channel'] + " " if r.get('channels') else req['channel'] + " ")
+    r.sadd('channels', req['channel'])
     cache_manager.init_channel_cache(req['channel'])
 
     return {"response_code": 200}
