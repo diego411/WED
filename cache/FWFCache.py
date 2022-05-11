@@ -34,9 +34,6 @@ class FWFCache:
 
         missed_value = self.miss_callback(target)
 
-        if not missed_value:
-            return None
-
         if self.current_size >= self.MAX_SIZE:  # flush on full cash miss
             self.flush()
             cache = {}
