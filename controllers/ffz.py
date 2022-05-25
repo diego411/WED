@@ -1,5 +1,5 @@
 import requests
-from apis import twitch
+from controllers import twitch
 
 CHANNEL_EMOTES_URL = "https://api.betterttv.net/3/cached/frankerfacez/users/twitch/"
 GLOBAL_EMOTES_URL = "https://api.frankerfacez.com/v1/set/global"

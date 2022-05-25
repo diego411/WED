@@ -2,4 +2,4 @@ emotes
 .env
 dump.rdb
 __pycache__
-/apis/__pycache__
+/controllers/__pycache__

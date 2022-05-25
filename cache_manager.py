@@ -1,10 +1,10 @@
 import json
 import os
 import utils
-from apis import bttv
-from apis import ffz
-from apis import seventv
-from apis import twitch
+from controllers import bttv
+from controllers import ffz
+from controllers import seventv
+from controllers import twitch
 from model import query_model
 from cache.FWFCache import FWFCache
 from cache.ExpiringCache import ExpiringCache
@@ -14,7 +14,8 @@ class CacheManager:
 
     def __init__(self, cach_client):
         self.r = cach_client
-        self.channels = self.r.smembers('channels') if self.r.smembers('channels') else []
+        self.channels = self.r.smembers(
+            'channels') if self.r.smembers('channels') else []
         self.channel_cache_map = {}
         self.global_twitch_emotes_cache = {}
         self.globa_third_party_emotes_cache = {}

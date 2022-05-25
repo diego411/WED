@@ -1,5 +1,5 @@
 import requests
-from apis import twitch
+from controllers import twitch
 
 CHANNEL_EMOTES_URL = "https://api.betterttv.net/3/cached/users/twitch/"
 EMOTE_URL = "https://cdn.betterttv.net/emote/"
