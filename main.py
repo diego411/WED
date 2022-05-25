@@ -39,7 +39,7 @@ def hwis():
     if 'channel' not in req or 'message' not in req:
         return "malformed request", 400
 
-    if not r.get(req['channel']):
+    if not req['channel'] in r.smembers("channels"):
         return "This channel is currently not being cashed", 404
 
     stats = cache_manager.get_stats(req['message'], req['channel'])
