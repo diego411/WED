@@ -52,13 +52,23 @@ def hwis():
     }
 
 
-@app.route(BASE_ROUTE + "/join")
+@app.route(BASE_ROUTE + "/channels", methods=["GET", "POST"])
 def join():
-    req = request.json
-    if 'channel' not in req:
-        return "malformed request: you need to specify a channel to join", 400
+    if request.method == "GET":
+        channels = []
+        for channel in r.smembers("channels"):
+            channels.append(channel)
+        return {
+            "response_code": 200,
+            "channels": channels
+        }
 
-    r.sadd('channels', req['channel'])
-    cache_manager.init_channel_cache(req['channel'])
+    if request.method == "POST":
+        req = request.json
+        if 'channel' not in req:
+            return "malformed request: you need to specify a channel to join", 400
 
-    return {"response_code": 200}
+        r.sadd('channels', req['channel'])
+        cache_manager.init_channel_cache(req['channel'])
+
+        return {"response_code": 200}
