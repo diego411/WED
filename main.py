@@ -2,6 +2,7 @@ import redis
 import os
 from flask import Flask, request
 from cache_manager import CacheManager
+from controllers import config
 
 from dotenv import load_dotenv
 
@@ -11,6 +12,13 @@ redis_host = os.environ.get("REDIS_HOST")
 redis_port = os.environ.get("REDIS_PORT")
 
 r = redis.Redis(host=redis_host, port=redis_port, db=0, decode_responses=True)
+
+config = config.pull_config()
+
+if config:
+    r.delete("channels")
+    for channel in config["channels"]:
+        r.sadd("channels", channel)
 
 cache_manager = CacheManager(r)
 cache_manager.init_cache()
