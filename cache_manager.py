@@ -120,7 +120,10 @@ class CacheManager:
         scores = []
         tmp_cache = {}
 
+        white_list = self.r.smembers("whitelist")
         words = message.split(' ')
+
+        words = list(filter(lambda w: w not in white_list, words))
 
         for word in words:
 

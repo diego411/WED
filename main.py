@@ -72,3 +72,25 @@ def join():
         cache_manager.init_channel_cache(req['channel'])
 
         return {"response_code": 200}
+
+
+@app.route(BASE_ROUTE + "/whitelist", methods=["GET", "POST"])
+def whitelist():
+    if request.method == "GET":
+        whitelist = []
+        print(r.smembers("whitelist"))
+        for term in r.smembers("whitelist"):
+            whitelist.append(term)
+        return {
+            "response_code": 200,
+            "whitelist": whitelist
+        }
+
+    if request.method == "POST":
+        req = request.json
+        if 'term' not in req:
+            return "malformed request: you need to specify the term to whitelist", 400
+
+        r.sadd("whitelist", req["term"])
+
+        return {"response_code": 200}
