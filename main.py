@@ -19,6 +19,9 @@ if config:
     r.delete("channels")
     for channel in config["channels"]:
         r.sadd("channels", channel)
+    r.delete("whitelist")
+    for term in config["whitelist"]:
+        r.sadd("whitelist", term)
 
 cache_manager = CacheManager(r)
 cache_manager.init_cache()

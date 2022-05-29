@@ -6,7 +6,7 @@ CONFIG_SERVICE_URL = os.environ.get("CONFIG_SERVER_URL")
 
 def pull_config():
     try:
-        response = requests.get(CONFIG_SERVICE_URL + "api/v1/channels")
+        response = requests.get(CONFIG_SERVICE_URL + "api/v1/config")
         if response.ok:
             print("Sucessfully pulled config from config service")
             return response.json()
