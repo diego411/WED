@@ -21,6 +21,8 @@ class CacheManager:
         self.globa_third_party_emotes_cache = {}
         self.sub_emote_cache = FWFCache(
             self.r, "sub-emotes", 500, self.miss_callback_sub_emotes)
+        self.EXIRING_RATE = float(os.environ.get("EXPIRING_RATE"))
+
         self.init_cache()
 
     def init_cache(self):
@@ -30,18 +32,18 @@ class CacheManager:
 
     def init_channel_cache(self, channel):
         self.channel_cache_map[channel] = ExpiringCache(
-            self.r, channel, self.miss_callback_third_party_emotes, 7200, self.fetch_all_third_party_target_names)
+            self.r, channel, self.miss_callback_third_party_emotes, self.EXIRING_RATE, self.fetch_all_third_party_target_names)
 
     def init_third_party_emote_cache(self):
         for channel in self.channels:
             self.channel_cache_map[channel] = ExpiringCache(
-                self.r, channel, self.miss_callback_third_party_emotes, 7200, self.fetch_all_third_party_target_names)
+                self.r, channel, self.miss_callback_third_party_emotes, self.EXIRING_RATE, self.fetch_all_third_party_target_names)
 
     def init_global_emote_cache(self):
         self.global_twitch_emotes_cache = ExpiringCache(
-            self.r, "global-twitch", self.miss_callback_global_twitch_emotes, 7200, self.fetch_all_global_twitch_target_names)
+            self.r, "global-twitch", self.miss_callback_global_twitch_emotes, self.EXIRING_RATE, self.fetch_all_global_twitch_target_names)
         self.globa_third_party_emotes_cache = ExpiringCache(
-            self.r, "global-third-party", self.miss_callback_global_third_party_emotes, 7200, self.fetch_all_global_third_party_target_names)
+            self.r, "global-third-party", self.miss_callback_global_third_party_emotes, self.EXIRING_RATE, self.fetch_all_global_third_party_target_names)
 
     def get_emote_score(self, emote):
         if not emote:
