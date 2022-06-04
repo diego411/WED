@@ -14,8 +14,6 @@ class ExpiringCache:
         self.refresh_treshold = refresh_treshold
 
         self.shoot("init")
-        for target in self.all_target_names:
-            self.shoot(target)
 
     # KKona
     def shoot(self, target):
