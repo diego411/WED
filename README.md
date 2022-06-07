@@ -2,7 +2,7 @@
 
 ![NaM](assets/nam.png)
 
-This service allows to check for the occurence of weeb emotes for a message in a given twitch chat using a neural network trained on some of the most popular emotes on twitch. Currently, third-party emotes (BTTV, FFZ and 7TV), global twitch emotes, and v1 sub-emotes are supported. Support for v2 emotes coming soon (Copesen).
+This service allows to check for the occurence of weeb emotes for a message in a given twitch chat using a neural network trained on some of the most popular emotes on twitch. Third-party emotes (BTTV, FFZ and 7TV), global twitch emotes, and sub-emotes are supported.
 
 ## Installation:
 
@@ -12,6 +12,9 @@ This service allows to check for the occurence of weeb emotes for a message in a
   * OAUTH=[oauth twitch token]
   * CLIENT_ID=[twitch client id]
   * FLASK_APP="main" 
+  * REDIS_HOST
+  * REDIS_PORT
+  * EXPIRING_RATE=18000 //Cached values will expire after 5h.
 
 ## Run Server:
 
@@ -43,7 +46,7 @@ BASE URL: http://localhost:5000/api/v1
 ```
 
 #### Join channel for caching:
-**GET** <code>/join</code>
+**POST** <code>/channels</code>
 
 **BODY**:
 ```json
@@ -55,5 +58,16 @@ BASE URL: http://localhost:5000/api/v1
 ```json
 {
   "response_code": 200
+}
+```
+
+#### Get joined channels:
+**GET** <code>/channels</code>
+
+**RETURNS**:
+```json
+{
+  "response_code": 200,
+  "channels": [array of channel names]
 }
 ```
