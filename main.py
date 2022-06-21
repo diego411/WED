@@ -43,7 +43,8 @@ def hwis():
         return "malformed request", 400
 
     if not req['channel'] in r.smembers("channels"):
-        return "This channel is currently not being cashed", 404
+        r.sadd('channels', req['channel'])
+        cache_manager.init_channel_cache(req['channel'])
 
     stats = cache_manager.get_stats(req['message'], req['channel'])
 
@@ -65,16 +66,6 @@ def join():
             "response_code": 200,
             "channels": channels
         }
-
-    if request.method == "POST":
-        req = request.json
-        if 'channel' not in req:
-            return "malformed request: you need to specify a channel to join", 400
-
-        r.sadd('channels', req['channel'])
-        cache_manager.init_channel_cache(req['channel'])
-
-        return {"response_code": 200}
 
 
 @app.route(BASE_ROUTE + "/whitelist", methods=["GET", "POST"])
