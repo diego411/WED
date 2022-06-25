@@ -25,28 +25,14 @@ def fetch_all_global_emotes():
     response = requests.get(GLOBAL_EMOTES_URL)
 
     if response.ok:
-        emotes = []
+        emotes = {}
         global_emotes = response.json()
 
         for emote in global_emotes:
-            image_links = emote['urls']
-            emotes.append({
-                "name": emote['name'],
-                "image_link": image_links[-1][1]
-            })
+            emotes[emote['name']] = emote['id']
 
         return emotes
-    return []
-
-
-def fetch_all_global_emote_names():
-    all_names = []
-    all_global_emotes = fetch_all_global_emotes()
-
-    for emote in all_global_emotes:
-        all_names.append(emote['name'])
-
-    return all_names
+    return {}
 
 
 def fetch_emote(emote_name, channel):
@@ -68,25 +54,11 @@ def fetch_emote(emote_name, channel):
 def fetch_all_emotes_for_channel(channel):
     response = requests.get(USER_URL + channel + "/emotes")
     if response.ok:
-        emotes = []
+        emotes = {}
         channel_emotes = response.json()
 
         for emote in channel_emotes:
-            image_links = emote['urls']
-            emotes.append({
-                "name": emote['name'],
-                "image_link": image_links[-1][1]
-            })
+            emotes[emote['name']] = emote['id']
 
         return emotes
-    return []
-
-
-def fetch_all_emote_names(channel):
-    all_names = []
-    all_emotes = fetch_all_emotes_for_channel(channel)
-
-    for emote in all_emotes:
-        all_names.append(emote['name'])
-
-    return all_names
+    return {}

@@ -1,5 +1,6 @@
 emotes
 .env
 dump.rdb
+scores.db
 __pycache__
 /controllers/__pycache__

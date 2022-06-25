@@ -1,5 +1,6 @@
 import redis
 import os
+import db
 from flask import Flask, request
 from cache_manager import CacheManager
 from controllers import config
@@ -42,11 +43,15 @@ def hwis():
     if 'channel' not in req or 'message' not in req:
         return "malformed request", 400
 
-    if not req['channel'] in r.smembers("channels"):
-        r.sadd('channels', req['channel'])
-        cache_manager.init_channel_cache(req['channel'])
+    channel = req['channel']
+    message = req['message']
+    emotes = req['emotes'] if 'emotes' in req else None
 
-    stats = cache_manager.get_stats(req['message'], req['channel'])
+    if not channel in r.smembers("channels"):
+        r.sadd('channels', channel)
+        cache_manager.init_channel_cache(channel)
+
+    stats = cache_manager.get_stats(message, channel, emotes=emotes)
 
     return {
         "response_code": 200,
@@ -56,8 +61,16 @@ def hwis():
     }
 
 
+@app.route(BASE_ROUTE + "/scores")
+def scores():
+    return {
+        "response_code": 200,
+        "scores": db.all_scores()
+    }
+
+
 @app.route(BASE_ROUTE + "/channels", methods=["GET", "POST"])
-def join():
+def channels():
     if request.method == "GET":
         channels = []
         for channel in r.smembers("channels"):

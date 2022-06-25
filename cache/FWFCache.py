@@ -1,4 +1,5 @@
 import json
+import db
 
 
 class FWFCache:
@@ -15,7 +16,7 @@ class FWFCache:
             json.loads(cache).keys()) if cache else 0
 
     # KKona
-    def shoot(self, target):
+    def shoot(self, target, target_id):
         cache = self.cache_client.get(self.KEY)
         if not cache:
             self.cache_client.set(self.KEY, json.dumps({}))
@@ -30,9 +31,21 @@ class FWFCache:
             return cache[target]
 
         # cache miss
-        print("Cache miss for target: " + target + " in context: " + self.KEY)
+        missed_value = db.get_score(target_id)
 
-        missed_value = self.miss_callback(target)
+        if missed_value:  # db hit
+            print("Semi miss for target: " +
+                  target + " in context: " + self.KEY)
+        else:  # full miss
+            print("Complete miss for target: " +
+                  target + " in context: " + self.KEY)
+
+            missed_value = self.miss_callback(target)
+
+            if missed_value:
+                db.set_score(target, target_id, missed_value)
+                print("Stored target: " + target +
+                      " in db with value: " + str(missed_value))
 
         if self.current_size >= self.MAX_SIZE:  # flush on full cash miss
             self.flush()
