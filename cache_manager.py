@@ -119,64 +119,80 @@ class CacheManager:
 
     def get_stats(self, message, channel, emotes):
         # priority: global-twitch-emotes, sub-emotes, third-party-channel-emotes, global-third-party-emotes
-        scores = []
-        tmp_cache = {}
+        score_manager = ScoreManager()
 
         white_list = self.r.smembers("whitelist")
         words = message.split(' ')
 
         words = list(filter(lambda w: w not in white_list, words))
 
-        if emotes:
-            for emote_name in emotes:
-                while emote_name in words:
-                    words.remove(emote_name)
-            score = self.sub_emote_cache.shoot(
-                emote_name, target_id=emotes[emote_name])
-            if score:
-                scores.append(score)
-
         for word in words:
 
-            if word in tmp_cache:
-                scores.append(tmp_cache[word])
+            hit = score_manager.shoot_tmp_cache(word)
+            if hit:
                 continue
 
-            score = self.global_twitch_emotes_cache.shoot(word)
+            if emotes:
+                if word in emotes:
+                    if score_manager.shoot_expiring_cache(self.global_twitch_emotes_cache, word):
+                        continue
 
-            if score:
-                scores.append(score)
-                tmp_cache[word] = score
-                continue
-
-            if utils.matches_twitch_emote_pattern(word):
-                score = self.sub_emote_cache.shoot(word, target_id=None)
-
-                if score:
-                    scores.append(score)
-                    tmp_cache[word] = score
+                    if score_manager.shoot_fwf_cache(self.sub_emote_cache, word, emotes[word]):
+                        continue
+            else:
+                if score_manager.shoot_expiring_cache(self.global_twitch_emotes_cache, word):
                     continue
 
-            score = self.channel_cache_map[channel].shoot(word)
+                if utils.matches_twitch_emote_pattern(word):
+                    if score_manager.shoot_fwf_cache(self.sub_emote_cache, word, None):
+                        continue
 
-            if score:
-                scores.append(score)
-                tmp_cache[word] = score
+            if score_manager.shoot_expiring_cache(self.channel_cache_map[channel], word):
                 continue
 
-            score = self.globa_third_party_emotes_cache.shoot(word)
-
-            if score:
-                scores.append(score)
-                tmp_cache[word] = score
+            if score_manager.shoot_expiring_cache(self.globa_third_party_emotes_cache, word):
                 continue
 
-            tmp_cache[word] = 0
+            score_manager.set_tmp(word, 0)
 
-        if scores:
+        return score_manager.get_score_stats()
+
+
+class ScoreManager:
+    def __init__(self):
+        self.tmp_cache = {}
+        self.scores = []
+
+    def shoot_tmp_cache(self, target):
+        if target in self.tmp_cache:
+            self.scores.append(self.tmp_cache[target])
+            return True
+        return False
+
+    def set_tmp(self, target, score):
+        self.tmp_cache[target] = score
+
+    def shoot_expiring_cache(self, cache, target):
+        score = cache.shoot(target)
+        if score:
+            self.scores.append(score)
+            self.tmp_cache[target] = score
+            return True
+        return False
+
+    def shoot_fwf_cache(self, cache, target, target_id):
+        score = cache.shoot(target, target_id)
+        if score:
+            self.scores.append(score)
+            self.tmp_cache[target] = score
+            return True
+        return False
+
+    def get_score_stats(self):
+        if self.scores:
             max_score = 0
             number_of_weeb_terms = 0
-            for score in scores:
+            for score in self.scores:
                 if score > max_score:
                     max_score = score
                 if score > 0.7:

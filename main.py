@@ -45,7 +45,7 @@ def hwis():
 
     channel = req['channel']
     message = req['message']
-    emotes = req['emotes'] if 'emotes' in req else None
+    emotes = req['emotes'] if 'emotes' in req else {}
 
     if not channel in r.smembers("channels"):
         r.sadd('channels', channel)
