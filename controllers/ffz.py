@@ -72,7 +72,7 @@ def fetch_all_emotes_for_channel(channel):
             emotes[emote['code']] = emote['id']
 
         return emotes
-    return []
+    return {}
 
 
 def image_link_for_emote_id(emote_id):
