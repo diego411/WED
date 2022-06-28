@@ -62,11 +62,11 @@ class CacheManager:
         return self.get_emote_score(emote)
 
     def miss_callback_third_party_emotes(self, target, context):
-        if target in json.loads(self.r.get(context + "-emote-names-bttv")):
+        if target in json.loads(self.r.get(context + "-emotes-bttv")):
             emote = bttv.fetch_emote(target, context)
-        elif target in json.loads(self.r.get(context + "-emote-names-ffz")):
+        elif target in json.loads(self.r.get(context + "-emotes-ffz")):
             emote = ffz.fetch_emote(target, context)
-        elif target in json.loads(self.r.get(context + "-emote-names-seventv")):
+        elif target in json.loads(self.r.get(context + "-emotes-seventv")):
             emote = seventv.fetch_emote(target, context)
 
         return self.get_emote_score(emote)
@@ -91,36 +91,35 @@ class CacheManager:
         return self.get_emote_score(emote)
 
     def fetch_all_third_party_target_names(self, channel):
-        all_names_bttv = bttv.fetch_all_emote_names(channel)
-        self.r.set(channel + "-emote-names-bttv", json.dumps(all_names_bttv))
-        all_names_ffz = ffz.fetch_all_emote_names(channel)
-        self.r.set(channel + "-emote-names-ffz", json.dumps(all_names_ffz))
-        all_names_seventv = seventv.fetch_all_emote_names(channel)
-        self.r.set(channel + "-emote-names-seventv",
+        all_names_bttv = bttv.fetch_all_emotes_for_channel(channel)
+        self.r.set(channel + "-emotes-bttv", json.dumps(all_names_bttv))
+        all_names_ffz = ffz.fetch_all_emotes_for_channel(channel)
+        self.r.set(channel + "-emotes-ffz", json.dumps(all_names_ffz))
+        all_names_seventv = seventv.fetch_all_emotes_for_channel(channel)
+        self.r.set(channel + "-emotes-seventv",
                    json.dumps(all_names_seventv))
 
-        return all_names_bttv + all_names_ffz + all_names_seventv
+        return all_names_bttv | all_names_ffz | all_names_seventv
 
     def fetch_all_global_twitch_target_names(self, channel):
-        global_twitch = twitch.fetch_all_global_emote_names()
+        global_twitch = twitch.fetch_all_global_emotes()
         self.r.set("global-emotes-twitch", json.dumps(global_twitch))
 
         return global_twitch
 
     def fetch_all_global_third_party_target_names(self, channel):
-        global_bttv = bttv.fetch_all_global_emote_names()
+        global_bttv = bttv.fetch_all_global_emotes()
         self.r.set("global-emotes-bttv", json.dumps(global_bttv))
-        global_ffz = ffz.fetch_all_global_emote_names()
+        global_ffz = ffz.fetch_all_global_emotes()
         self.r.set("global-emotes-ffz", json.dumps(global_ffz))
-        global_seventv = seventv.fetch_all_global_emote_names()
+        global_seventv = seventv.fetch_all_global_emotes()
         self.r.set("global-emotes-seventv", json.dumps(global_seventv))
 
-        return global_bttv + global_ffz + global_seventv
+        return global_bttv | global_ffz | global_seventv
 
-    def get_stats(self, message, channel):
+    def get_stats(self, message, channel, emotes):
         # priority: global-twitch-emotes, sub-emotes, third-party-channel-emotes, global-third-party-emotes
-        scores = []
-        tmp_cache = {}
+        score_manager = ScoreManager()
 
         white_list = self.r.smembers("whitelist")
         words = message.split(' ')
@@ -129,45 +128,71 @@ class CacheManager:
 
         for word in words:
 
-            if word in tmp_cache:
-                scores.append(tmp_cache[word])
+            hit = score_manager.shoot_tmp_cache(word)
+            if hit:
                 continue
 
-            score = self.global_twitch_emotes_cache.shoot(word)
+            if emotes:
+                if word in emotes:
+                    if score_manager.shoot_expiring_cache(self.global_twitch_emotes_cache, word):
+                        continue
 
-            if score:
-                scores.append(score)
-                tmp_cache[word] = score
-                continue
-
-            if utils.matches_twitch_emote_pattern(word):
-                score = self.sub_emote_cache.shoot(word)
-
-                if score:
-                    scores.append(score)
-                    tmp_cache[word] = score
+                    if score_manager.shoot_fwf_cache(self.sub_emote_cache, word, emotes[word]):
+                        continue
+            else:
+                if score_manager.shoot_expiring_cache(self.global_twitch_emotes_cache, word):
                     continue
 
-            score = self.channel_cache_map[channel].shoot(word)
+                if utils.matches_twitch_emote_pattern(word):
+                    if score_manager.shoot_fwf_cache(self.sub_emote_cache, word, None):
+                        continue
 
-            if score:
-                scores.append(score)
-                tmp_cache[word] = score
+            if score_manager.shoot_expiring_cache(self.channel_cache_map[channel], word):
                 continue
 
-            score = self.globa_third_party_emotes_cache.shoot(word)
-
-            if score:
-                scores.append(score)
-                tmp_cache[word] = score
+            if score_manager.shoot_expiring_cache(self.globa_third_party_emotes_cache, word):
                 continue
 
-            tmp_cache[word] = 0
+            score_manager.set_tmp(word, 0)
 
-        if scores:
+        return score_manager.get_score_stats()
+
+
+class ScoreManager:
+    def __init__(self):
+        self.tmp_cache = {}
+        self.scores = []
+
+    def shoot_tmp_cache(self, target):
+        if target in self.tmp_cache:
+            self.scores.append(self.tmp_cache[target])
+            return True
+        return False
+
+    def set_tmp(self, target, score):
+        self.tmp_cache[target] = score
+
+    def shoot_expiring_cache(self, cache, target):
+        score = cache.shoot(target)
+        if score:
+            self.scores.append(score)
+            self.tmp_cache[target] = score
+            return True
+        return False
+
+    def shoot_fwf_cache(self, cache, target, target_id):
+        score = cache.shoot(target, target_id)
+        if score:
+            self.scores.append(score)
+            self.tmp_cache[target] = score
+            return True
+        return False
+
+    def get_score_stats(self):
+        if self.scores:
             max_score = 0
             number_of_weeb_terms = 0
-            for score in scores:
+            for score in self.scores:
                 if score > max_score:
                     max_score = score
                 if score > 0.7:

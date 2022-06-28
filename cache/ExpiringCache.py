@@ -1,5 +1,6 @@
 import json
 import time
+import db
 
 
 class ExpiringCache:
@@ -43,11 +44,23 @@ class ExpiringCache:
             print("Cached value for target: " + target + " is expired")
 
         # cache miss
-        print("Cache miss for target: " + target + " in context: " + self.KEY)
-        missed_value = self.miss_callback(target, self.KEY)
+        missed_value = db.get_score(self.all_target_names[target])
 
-        if not missed_value:
-            return None
+        if missed_value:  # db hit
+            print("Semi miss for target: " +
+                  target + " in context: " + self.KEY)
+        else:  # full miss
+            print("Complete miss for target: " +
+                  target + " in context: " + self.KEY)
+
+            missed_value = self.miss_callback(target, self.KEY)
+
+            if not missed_value:
+                return None
+
+            db.set_score(target, self.all_target_names[target], missed_value)
+            print("Stored target: " + target +
+                  " in db with value: " + str(missed_value))
 
         all_targets[target] = {
             "value": missed_value,

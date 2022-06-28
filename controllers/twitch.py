@@ -50,30 +50,14 @@ def fetch_all_global_emotes():
     response = requests.get(HELIX_GLOBAL_EMOTES, headers=headers)
 
     if response.ok:
-        emotes = []
+        emotes = {}
         global_emotes = response.json()['data']
-        image_sizes = ["url_4x", "url_2x", "url_1x"]
 
         for emote in global_emotes:
-            for image_size in image_sizes:
-                if image_size in emote['images']:
-                    emotes.append({
-                        "name": emote['name'],
-                        "image_link": emote['images'][image_size]
-                    })
-                    break
+            emotes[emote['name']] = emote['id']
+
         return emotes
-    return []
-
-
-def fetch_all_global_emote_names():
-    all_names = []
-    all_global_emotes = fetch_all_global_emotes()
-
-    for emote in all_global_emotes:
-        all_names.append(emote['name'])
-
-    return all_names
+    return {}
 
 
 def get_user_id(channel_name):
