@@ -132,7 +132,7 @@ class CacheManager:
             if hit:
                 continue
 
-            if emotes:
+            if not emotes == None:
                 if word in emotes:
                     if score_manager.shoot_expiring_cache(self.global_twitch_emotes_cache, word):
                         continue
