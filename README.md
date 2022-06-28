@@ -28,46 +28,85 @@ BASE URL: http://localhost:5000/api/v1
 #### Get weeb score:
 **GET** <code>/hwis</code>
 
-**BODY**: 
+**MINIMAL BODY**: 
 ```json
 { 
-  "channel": [channel name], 
-  "message": [message] 
+  "channel": channel name, 
+  "message": message 
 }
 ```
 **RETURNS**: 
 ```json
 { 
   "response_code": 200, 
-  "isWeeb": [boolean], 
-  "confidence": [confidence for given assessment], 
-  "number_of_weeb_terms": [count of weeb terms in given message for given channel] 
+  "isWeeb": boolean, 
+  "confidence": confidence for given assessment, 
+  "number_of_weeb_terms": count of weeb terms in given message for given channel 
 }
 ```
+Optinally, the parameter "emotes" can be passed, which should consist of a map of every first party emote name in the message to its corresponding emote id.
 
-#### Join channel for caching:
-**POST** <code>/channels</code>
-
-**BODY**:
+**EXAMPLE BODY:**
 ```json
 {
-  "channel": [channel name]
+  "channel": "forsen",
+  "message": "Kappa = Grey Face (no space)",
+  "emotes": {
+    "Kappa": 25
+  }
 }
 ```
+The response looks the same. Note that, in this example no check regarding if Kappa actually has the id 25 is made. The API trusts that you provide it with the right ids and with every first party emote in the message. With the help of this parameter db hits for sub-emotes are enabled.
+
+#### Get joined channels:
+**GET** <code>/channels</code>
+
+**RETURNS:**
+```json
+{
+  "response_code": 200,
+  "channels": [channel names]
+}
+```
+
+#### GET stored scores:
+**GET** <code>/scores</code>
+
 **RETURNS**:
+```json
+{
+  "response_code": 200,
+  "scores": [{
+    "id": emote id,
+    "name": emote name,
+    "score": score for emote
+  }]
+}
+```
+
+#### POST whitelist term:
+**POST** <code>/whitelist</code>
+
+**BODY**
+```json
+{
+  "term": term to whitelist
+}
+```
+
+**RETURNS**
 ```json
 {
   "response_code": 200
 }
 ```
 
-#### Get joined channels:
-**GET** <code>/channels</code>
+#### GET whitelist:
+**GET** <code>/whitelist</code>
 
-**RETURNS**:
+**RETURNS**
 ```json
 {
   "response_code": 200,
-  "channels": [array of channel names]
+  "whitelist": [whitelisted terms]
 }
-```
