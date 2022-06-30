@@ -1,9 +1,11 @@
 import redis
 import os
 import db
+import utils
 from flask import Flask, request
 from cache_manager import CacheManager
 from controllers import config
+from model import query_model
 
 from dotenv import load_dotenv
 
@@ -40,25 +42,38 @@ def index():
 @app.route(BASE_ROUTE + "/hwis")
 def hwis():
     req = request.json
-    if 'channel' not in req or 'message' not in req:
-        return "malformed request", 400
 
-    channel = req['channel']
-    message = req['message']
-    emotes = req['emotes'] if 'emotes' in req else None
+    if 'image_link' in req:
+        path_to_image = utils.download_image(req['image_link'], "pfp")
+        score = query_model.get_weeb_score(path_to_image).item()
+        os.remove(path_to_image)
 
-    if not channel in r.smembers("channels"):
-        r.sadd('channels', channel)
-        cache_manager.init_channel_cache(channel)
+        is_weeb = score > 0.7
+        return {
+            "response_code": 200,
+            "is_weeb": is_weeb,
+            "confidence": score if is_weeb else 1 - score
+        }
+    else:
+        if 'channel' not in req or 'message' not in req:
+            return "malformed request", 400
 
-    stats = cache_manager.get_stats(message, channel, emotes=emotes)
+        channel = req['channel']
+        message = req['message']
+        emotes = req['emotes'] if 'emotes' in req else None
 
-    return {
-        "response_code": 200,
-        "is_weeb": stats['is_weeb'],
-        "confidence": stats['confidence'],
-        "number_of_weeb_terms": stats['number_of_weeb_terms']
-    }
+        if not channel in r.smembers("channels"):
+            r.sadd('channels', channel)
+            cache_manager.init_channel_cache(channel)
+
+        stats = cache_manager.get_stats(message, channel, emotes=emotes)
+
+        return {
+            "response_code": 200,
+            "is_weeb": stats['is_weeb'],
+            "confidence": stats['confidence'],
+            "number_of_weeb_terms": stats['number_of_weeb_terms']
+        }
 
 
 @app.route(BASE_ROUTE + "/scores")

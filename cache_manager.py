@@ -49,7 +49,7 @@ class CacheManager:
         if not emote:
             return None
 
-        path_to_emote = utils.download_emote(
+        path_to_emote = utils.download_image(
             emote['image_link'], emote['name'])
         score = query_model.get_weeb_score(path_to_emote)
         os.remove(path_to_emote)
