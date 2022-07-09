@@ -16,14 +16,14 @@ redis_port = os.environ.get("REDIS_PORT")
 
 r = redis.Redis(host=redis_host, port=redis_port, db=0, decode_responses=True)
 
-config = config.pull_config()
+conf = config.pull_config()
 
-if config:
+if conf:
     r.delete("channels")
-    for channel in config["channels"]:
+    for channel in conf["channels"]:
         r.sadd("channels", channel)
     r.delete("whitelist")
-    for term in config["whitelist"]:
+    for term in conf["whitelist"]:
         r.sadd("whitelist", term)
 
 cache_manager = CacheManager(r)
@@ -65,6 +65,12 @@ def hwis():
         if not channel in r.smembers("channels"):
             r.sadd('channels', channel)
             cache_manager.init_channel_cache(channel)
+
+        if r.exists("whitelist") == 0:
+            conf = config.pull_config()
+            if conf:
+                for term in conf["whitelist"]:
+                    r.sadd("whitelist", term)
 
         stats = cache_manager.get_stats(message, channel, emotes=emotes)
 
